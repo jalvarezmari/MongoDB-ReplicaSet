@@ -1,0 +1,72 @@
+version: "3"
+services:
+
+  mongo-fill: 
+    image: mongo:3.2.21
+    container_name: mongo-fill
+    hostname: mongo-fill
+    networks:
+      - my-mongo-cluster
+    volumes:
+      - ./:/opt/
+    command: 
+      - /opt/configure-replica.sh
+
+
+  mongo1:
+    image: mongo:3.2.21
+    hostname: mongo1
+    container_name: mongo1
+    expose:
+      - 27017
+    restart: always
+    networks:
+      - my-mongo-cluster
+    ports:
+      - 30001:27017
+    entrypoint: [ "/usr/bin/mongod", "--replSet", "my-mongo-set" ]
+    environment:
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ADVERTISED_HOSTNAME=mongo1
+
+
+
+  mongo2:
+    hostname: mongo2
+    container_name: mongo2
+    image: mongo:3.2.21
+    expose:
+      - 27017
+    restart: always
+    networks:
+      - my-mongo-cluster
+    ports:
+      - 30002:27017
+    entrypoint: [ "/usr/bin/mongod", "--replSet", "my-mongo-set" ]
+    environment:
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongo1
+      - MONGODB_ADVERTISED_HOSTNAME=mongo2
+
+
+
+  mongo3:
+    hostname: mongo3
+    container_name: mongo3
+    image: mongo:3.2.21
+    expose:
+      - 27017
+    restart: always
+    networks:
+      - my-mongo-cluster
+    ports:
+      - 30003:27017
+    entrypoint: [ "/usr/bin/mongod", "--replSet", "my-mongo-set" ]
+    environment:
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongo1
+      - MONGODB_ADVERTISED_HOSTNAME=mongo3
+
+
+networks:
+    my-mongo-cluster:
